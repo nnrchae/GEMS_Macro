@@ -3,7 +3,7 @@ name: Daily Bigtech & AWS Analysis
 on:
   schedule:
     # 매일 한국 시간 오전 11:10 실행 (UTC 02:10)
-    - cron: '10 2 * * *'
+    - cron: '45 23 * * *'
   workflow_dispatch:
 
 jobs:
