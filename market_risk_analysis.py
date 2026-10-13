@@ -1,4 +1,5 @@
 import os
+import time
 import smtplib
 from datetime import datetime
 from email.mime.text import MIMEText
@@ -20,7 +21,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 # ---------------------------------------------------------------------------
-# 2. 메인 파이프라인 (시장 하락세 & 6대 리스크 지표 정밀 진단)
+# 2. 메인 파이프라인 (재시도 로직 포함)
 # ---------------------------------------------------------------------------
 
 def run_market_risk_analysis_pipeline():
@@ -73,21 +74,31 @@ def run_market_risk_analysis_pipeline():
 4. **자산 배분 시사점**: 투자자가 취해야 할 행동 조언.
 """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.1,
-                max_output_tokens=8192,  # 응답 끊김 방지
-                tools=[{"google_search": {}}]
+    analysis_result = ""
+    max_retries = 3
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"API 요청 시도 중... (시도 {attempt}/{max_retries})")
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.1,
+                    max_output_tokens=8192,
+                    tools=[{"google_search": {}}]
+                )
             )
-        )
-        analysis_result = response.text.strip() if response.text else "응답 내용 없음"
-    except Exception as e:
-        analysis_result = f"[실행 오류 발생]: {e}"
-        print(analysis_result)
+            analysis_result = response.text.strip() if response.text else "응답 내용 없음"
+            break  # 성공 시 루프 탈출
+        except Exception as e:
+            print(f"[경고] 시도 {attempt} 실패: {e}")
+            if attempt < max_retries:
+                print("5초 후 재시도합니다...")
+                time.sleep(5)
+            else:
+                analysis_result = f"[실행 오류 발생 - 최대 재시도 초과]: {e}"
 
     # -----------------------------------------------------------------------
     # 리포트 본문 구성 및 이메일 발송
