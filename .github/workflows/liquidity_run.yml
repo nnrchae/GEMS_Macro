@@ -3,7 +3,7 @@ name: Daily Liquidity & Margin Analysis
 on:
   schedule:
     # 매일 한국 시간 오전 10:30 실행 (UTC 01:30)
-    - cron: '30 1 * * *'
+    - cron: '30 23 * * *'
   workflow_dispatch:
 
 jobs:
