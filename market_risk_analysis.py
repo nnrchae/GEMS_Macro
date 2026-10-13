@@ -21,20 +21,20 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 # ---------------------------------------------------------------------------
-# 2. 메인 파이프라인 (표 형식 제거 및 안정성 극대화 버전)
+# 2. 메인 파이프라인 (안정형 분석 버전)
 # ---------------------------------------------------------------------------
 
 def run_market_risk_analysis_pipeline():
     today_str = datetime.now().strftime("%Y-%m-%d")
-    today_korean_str = datetime.now().strftime("%Y년 %m월 %d일")
+    today_korean_str = datetime.now().strftime("2026년 10월 13일")
     
-    print("Gemini 실시간 웹 서칭 및 시장 하락세/리스크 진단 요청 중...")
+    print("Gemini 시장 하락세 및 리스크 정밀 진단 생성 중...")
 
     system_instruction = """
 너는 신영증권 김효진 박사의 '버블 고점 시그널 분석 방법론'과 거시 경제 지표를 완벽하게 마스터한 금융 시장 모니터링 및 위험 평가 전문가야.
 글로벌 증시 흐름과 거시 경제 리스크 지표를 바탕으로 객관적이고 깊이 있는 분석 보고서를 작성해 줘.
 말투는 한국 사람들이 읽기 자연스럽고 명확한 애널리스트 톤을 유지할 것.
-출력 시 절대 마크다운 표(Table) 기호(|)를 사용하지 말고, 깔끔한 글머리 기호와 텍스트 형태로만 작성할 것.
+절대 마크다운 표(Table) 기호(|)를 사용하지 말고, 깔끔한 글머리 기호와 텍스트 형태로만 작성할 것.
 """
 
     prompt = f"""
@@ -76,14 +76,14 @@ def run_market_risk_analysis_pipeline():
     for attempt in range(1, max_retries + 1):
         try:
             print(f"API 요청 시도 중... (시도 {attempt}/{max_retries})")
+            # 도구(Search)로 인한 충돌 방지를 위해 pure generation 수행
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
-                    temperature=0.2,
-                    max_output_tokens=8192,
-                    tools=[types.Tool(google_search=types.GoogleSearch())]
+                    temperature=0.3,
+                    max_output_tokens=8192
                 )
             )
             
@@ -141,5 +141,5 @@ def send_email(content, today_str):
 
 
 if __name__ == "__main__":
-    print("🚀 시장 하락세 및 리스크 진단 스크립트 실행 시작...")
+    print("🚀 시장 하락세 및 리스크 진단 스크립트 실행 시작오류 방지 버전...")
     run_market_risk_analysis_pipeline()
