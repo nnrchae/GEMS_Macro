@@ -32,8 +32,8 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # 실제 스크립트 실행 (등록된 5개 Secret 값 모두 전달)
-     - name: Run script
+      # 실제 스크립트 실행 (등록된 Secret 값 전달 및 macro_analysis.py 실행)
+      - name: Run script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
