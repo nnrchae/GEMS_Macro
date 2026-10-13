@@ -3,7 +3,7 @@ name: Daily Semiconductor News Analysis
 on:
   schedule:
     # 매일 한국 시간 오전 11:50 실행 (UTC 02:50)
-    - cron: '50 2 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
