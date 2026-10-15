@@ -87,10 +87,10 @@ def run_macro_analysis_pipeline():
     # -----------------------------------------------------------------------
     system_instruction = """
 너는 거시경제 지표 및 증시 수급 데이터를 바탕으로 현재 시장의 위치와 하락장 위험도를 객관적으로 진단하는 전문가야.
-막연한 공포나 낙관론을 배제하고 제공된 수치 데이터 기반으로만 분석해 줘.
+막연한 공포나 낙관론을 배제하고 제공된 수치 데이터 및 웹 검색을 통한 최신 지표 기반으로만 분석해 줘.
 
 [주의 사항]
-- 제공된 시트 데이터(A1:C68) 내에 없는 수치는 절대로 예측하여 지어내지 말고 "데이터 없음"으로만 명시해 줘.
+- 시트 데이터와 웹 검색을 통해 확보한 최신 수치를 활용하여 정확하게 분석할 것.
 - 이미지/색상이 아닌 데이터의 수치와 (+/-) 부호를 바탕으로 상승/하락을 판단할 것.
 - 거시경제 애널리스트와 같은 신뢰감 있는 전문가 톤을 유지할 것.
 """
@@ -105,7 +105,7 @@ def run_macro_analysis_pipeline():
 {macro_sheet_text}
 ========================================
 
-위 데이터(VIX 지수, 공포&탐욕지수, 주요 미국 주식지수[다우, S&P500, 나스닥], 주요 종목[NVDA, Micron, SKHY, 알파벳, 샌디스크, 팔란티어, EWY 등] 포함)를 바탕으로 아래 **2가지 파트**로 작성해 줘.
+위 데이터(VIX 지수, 공포&탐욕지수, 주요 미국 주식지수[다우, S&P500, 나스닥], 주요 종목[NVDA, Micron, SKHY, 알파벳, 샌디스크, 팔란티어, EWY 등] 포함)와 **필요 시 최신 웹 검색 데이터**를 바탕으로 아래 **2가지 파트**로 작성해 줘.
 
 ---
 
@@ -118,7 +118,7 @@ def run_macro_analysis_pipeline():
 ---
 
 ### [PART 2. 매크로 리스크 진단기 (Macro Health Checker)]
-아래 8대 핵심 지표 위험 판단 기준(Danger Trigger)에 근거하여 시트 데이터상에서 확인 가능한 항목을 파악하고 위험도를 진단해 줘. (데이터가 없는 지표는 미입력/데이터 없음으로 명시)
+아래 8대 핵심 지표 위험 판단 기준(Danger Trigger)에 근거하여 시트 데이터 및 웹 검색을 통해 확인 가능한 항목을 파악하고 위험도를 진단해 줘.
 
 [8대 판단 기준]
 1. 장단기 금리차 (10Y-2Y): Bull Steepening(금리 인하로 인한 역전 해소) 시 경고
@@ -138,19 +138,24 @@ def run_macro_analysis_pipeline():
 
 [PART 2 출력 형식]
 1. 종합 위험도 판정: [안정 / 주의 / 경계 / 위험] 및 위험 지표 개수 (X / 8개)
-2. 트리거 작동 지표 리스트: 경고 기준을 넘어선 지표와 그 이유
+2. 트리거 작동 지표 리스트: 경고 기준을 넘어선 지표, 해당 수치, 그리고 그 이유
 3. 핵심 위험 요인 요약: 현재 시장의 가장 취약한 고리 (2~3줄)
 4. 추천 자산 배분 가이드: 현금, 방어주, 성장주 등의 비중 조율 제언
+
+[추가 지침]
+- PART 2 진단에 필요한 미국 기준금리, Core CPI, 실업률, MMF 잔고, 마진 데트, 연준 총자산/TGA/RRP, 하이일드 스프레드, 빅테크 평균 PEG 등의 지표가 시트에 없거나 부족한 경우, 최신 경제 웹 데이터를 검색하여 활용해 줘.
 """
 
-    print("Gemini API 분석 요청 중...")
+    print("Gemini API 분석 요청 중 (웹 검색 툴 활성화)...")
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
-                temperature=0.1
+                temperature=0.1,
+                # 👇 제미나이가 시트에 없는 데이터를 웹에서 직접 검색할 수 있도록 도구 추가
+                tools=[types.Tool(google_search=types.GoogleSearch())]
             )
         )
         analysis_result = response.text.strip() if response.text else "응답 내용 없음"
